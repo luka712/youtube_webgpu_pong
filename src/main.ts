@@ -1,4 +1,6 @@
-import shaderSource from "./shaders/UnlitMaterialShader.wgsl?raw"
+import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
+import { GeometryBuilder } from "./geometry/GeometryBuilder";
+import { UnlitRenderPipeline } from "./render_pipelines/UnlitRenderPipeline";
 
 
 async function init() {
@@ -19,27 +21,10 @@ async function init() {
     format: "bgra8unorm"
   });
 
-
-  const shaderModule = device.createShaderModule({
-    code: shaderSource
-  });
-
-  const renderPipeline = device.createRenderPipeline({
-    layout: "auto",
-    label: "Unlit Render Pipeline",
-    vertex: {
-      module: shaderModule,
-      entryPoint: "unlitMaterialVS"
-    },
-    fragment: {
-      module: shaderModule,
-      entryPoint: "unlitMaterialFS",
-      targets: [{
-        format: "bgra8unorm"
-      }]
-    }
-  });
-
+  const unlitPipeline = new UnlitRenderPipeline(device);
+  const geometry = new GeometryBuilder().createQuadGeometry();
+  const geometryBuffers = new GeometryBuffers(device, geometry);
+ 
   const draw = () => {
 
     const commandEncoder = device.createCommandEncoder();
@@ -48,14 +33,16 @@ async function init() {
       colorAttachments: [{
         view: gpuContext.getCurrentTexture().createView(),
         storeOp: "store",
-        clearValue: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 },
+        clearValue: { r: 0.8, g: 0.8, b: 0.8, a: 1.0 },
         loadOp: "clear"
       }]
     });
 
-    renderPassEncoder.setPipeline(renderPipeline);
-    renderPassEncoder.draw(3, 1, 0, 0);
 
+
+  
+    // DRAW HERE
+    unlitPipeline.draw(renderPassEncoder, geometryBuffers);
 
     renderPassEncoder.end();
     device.queue.submit([

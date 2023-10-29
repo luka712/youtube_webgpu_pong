@@ -1,26 +1,31 @@
+struct VSInput 
+{
+    @location(0) position: vec3f, 
+    @location(1) color: vec4f, 
+}
+
 struct VSOutput {
-    @builtin(position) position: vec4f 
+    @builtin(position) position: vec4f,
+    @location(1) color: vec4f,
 }
 
 @vertex 
 fn unlitMaterialVS(
+    in: VSInput,
+
+    // builtins 
     @builtin(vertex_index) vid: u32 
 ) -> VSOutput
 {
-    var position : array<vec4f, 3> = array(
-        vec4f(-0.5, -0.5, 0.0, 1.0), // 0
-        vec4f(-0.5, 0.5, 0.0, 1.0), // 1 
-        vec4f(0.5, -0.5, 0.0, 1.0)  // 2
-    );
-
     var out : VSOutput;
-    out.position = position[vid];
+    out.position = vec4f(in.position, 1.0);
+    out.color = in.color;
 
     return out;
 }
 
 @fragment
-fn unlitMaterialFS() -> @location(0) vec4f
+fn unlitMaterialFS(in : VSOutput) -> @location(0) vec4f
 {
-    return vec4f(0.0, 1.0, 0.0, 1.0);
+    return in.color;
 }
