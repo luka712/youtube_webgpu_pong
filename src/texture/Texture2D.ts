@@ -30,6 +30,8 @@ export class Texture2D {
         this.sampler = this.device.createSampler({
             magFilter: "linear",
             minFilter: "linear",
+            addressModeU: "repeat",
+            addressModeV: "repeat",
         });
     }
 
