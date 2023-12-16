@@ -1,6 +1,8 @@
 import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
+import { Camera } from "./camera/Camera";
 import { GeometryBuilder } from "./geometry/GeometryBuilder";
 import { Color } from "./math/Color";
+import { Mat4x4 } from "./math/Mat4x4";
 import { Vec2 } from "./math/Vec2";
 import { UnlitRenderPipeline } from "./render_pipelines/UnlitRenderPipeline";
 import { Texture2D } from "./texture/Texture2D";
@@ -16,6 +18,8 @@ async function loadImage(path: string): Promise<HTMLImageElement> {
 
   });
 }
+
+let angle  = 0;
 
 async function init() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -35,13 +39,16 @@ async function init() {
     format: "bgra8unorm"
   });
 
-  const unlitPipeline = new UnlitRenderPipeline(device);
+  const camera = new Camera(device);
+  camera.projectionView = Mat4x4.orthographic(-5,5, -5, 5, 0, 1);
+
+  const unlitPipeline = new UnlitRenderPipeline(device, camera);
   const geometry = new GeometryBuilder().createQuadGeometry();
   const geometryBuffers = new GeometryBuffers(device, geometry);
 
   const image = await loadImage("assets/test_texture.jpeg");
   unlitPipeline.diffuseTexture =  await Texture2D.create(device, image);
-  unlitPipeline.textureTilling = new Vec2(5,5);
+  unlitPipeline.textureTilling = new Vec2(1,1);
 
   const draw = () => {
 
@@ -60,6 +67,8 @@ async function init() {
 
 
     // DRAW HERE
+    angle += 0.01;
+    unlitPipeline.transform = Mat4x4.translation(0, 0, 0);
     unlitPipeline.draw(renderPassEncoder, geometryBuffers);
 
     renderPassEncoder.end();
