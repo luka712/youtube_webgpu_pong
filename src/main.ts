@@ -40,7 +40,8 @@ async function init() {
   });
 
   const camera = new Camera(device);
-  camera.projectionView = Mat4x4.orthographic(-5,5, -5, 5, 0, 1);
+  // camera.projectionView = Mat4x4.orthographic(-5,5, -5, 5, 0, 1);
+  camera.projectionView = Mat4x4.perspective(90, canvas.width / canvas.height, 0.01, 10);
 
   const unlitPipeline = new UnlitRenderPipeline(device, camera);
   const geometry = new GeometryBuilder().createQuadGeometry();
@@ -68,7 +69,7 @@ async function init() {
 
     // DRAW HERE
     angle += 0.01;
-    unlitPipeline.transform = Mat4x4.translation(0, 0, 0);
+    unlitPipeline.transform = Mat4x4.multiply( Mat4x4.translation(0, 0, 3), Mat4x4.rotationX(angle));
     unlitPipeline.draw(renderPassEncoder, geometryBuffers);
 
     renderPassEncoder.end();
