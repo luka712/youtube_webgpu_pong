@@ -6,6 +6,7 @@ import { Mat4x4 } from "./math/Mat4x4";
 import { Vec2 } from "./math/Vec2";
 import { UnlitRenderPipeline } from "./render_pipelines/UnlitRenderPipeline";
 import { Texture2D } from "./texture/Texture2D";
+import { UniformBuffer } from "./uniform_buffers/UniformBuffer";
 
 async function loadImage(path: string): Promise<HTMLImageElement> {
 
@@ -19,7 +20,7 @@ async function loadImage(path: string): Promise<HTMLImageElement> {
   });
 }
 
-let angle  = 0;
+let angle = 0;
 
 async function init() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -50,22 +51,35 @@ async function init() {
     usage: GPUTextureUsage.RENDER_ATTACHMENT
   })
 
+  // TRANSFORMS BUFFER 
+  const transformsBuffer = new UniformBuffer(device, 100 * Mat4x4.BYTE_SIZE, "Transforms Buffer");
+  const transforms: Array<Mat4x4> = [];
+
+  for (let i = 0; i < 100; i++) {
+
+    const transformMatrix = Mat4x4.translation(
+      Math.random() * 10 - 5, // -5 to 5 
+      Math.random() * 10 - 5, // -5 to 5 
+      Math.random() * 5 + 5, // 5 to 10
+    );
+
+    transforms.push(transformMatrix);
+
+    transformsBuffer.update(transformMatrix, i * Mat4x4.BYTE_SIZE);
+  }
 
 
   const camera = new Camera(device);
   // camera.projectionView = Mat4x4.orthographic(-5,5, -5, 5, 0, 1);
-  camera.projectionView = Mat4x4.perspective(90, canvas.width / canvas.height, 0.01, 10);
+  camera.projectionView = Mat4x4.perspective(60, canvas.width / canvas.height, 0.01, 10);
 
-  const unlitPipeline = new UnlitRenderPipeline(device, camera);
-  const unlitPipeline2 = new UnlitRenderPipeline(device, camera);
+  const unlitPipeline = new UnlitRenderPipeline(device, camera, transformsBuffer);
   const geometry = new GeometryBuilder().createCubeGeometry();
   const geometryBuffers = new GeometryBuffers(device, geometry);
 
   const image = await loadImage("assets/test_texture.jpeg");
-  unlitPipeline.diffuseTexture =  await Texture2D.create(device, image);
-  unlitPipeline.textureTilling = new Vec2(1,1);
-  unlitPipeline2.diffuseTexture =  await Texture2D.create(device, image);
-  unlitPipeline2.textureTilling = new Vec2(1,1);
+  unlitPipeline.diffuseTexture = await Texture2D.create(device, image);
+  unlitPipeline.textureTilling = new Vec2(1, 1);
 
   const draw = () => {
 
@@ -83,17 +97,23 @@ async function init() {
         view: depthTexture.createView(),
         depthLoadOp: "clear",
         depthStoreOp: "store",
-        depthClearValue: 1.0, 
+        depthClearValue: 1.0,
       },
     });
 
 
     // DRAW HERE
-    angle += 0.01;
-    unlitPipeline.transform = Mat4x4.multiply( Mat4x4.translation(0, 0, 1.5), Mat4x4.rotationX(angle));
-    unlitPipeline.draw(renderPassEncoder, geometryBuffers);
-    unlitPipeline2.transform = Mat4x4.multiply( Mat4x4.translation(0.5, 0.5, 1.5), Mat4x4.rotationX(angle));
-    unlitPipeline2.draw(renderPassEncoder, geometryBuffers);
+    for (let i = 0; i < 10; i++) {
+      const transformMatrix = Mat4x4.translation(
+        Math.random() * 10 - 5, // -5 to 5 
+        Math.random() * 10 - 5, // -5 to 5 
+        Math.random() * 5 + 5, // 5 to 10
+      );
+
+      transformsBuffer.update(transformMatrix, i * Mat4x4.BYTE_SIZE);
+    }
+    
+    unlitPipeline.draw(renderPassEncoder, geometryBuffers, 100);
 
 
     renderPassEncoder.end();

@@ -10,6 +10,8 @@ export class Mat4x4 extends Float32Array {
         ]);
     }
 
+    public static get BYTE_SIZE() { return 16 * Float32Array.BYTES_PER_ELEMENT; }
+
     public static multiply(a: Mat4x4, b: Mat4x4): Mat4x4 {
 
         const r0c0 = a[0] * b[0] + a[4] * b[1] + a[8] * b[2] + a[12] * b[3];
