@@ -1,4 +1,5 @@
 import { MathUtil } from "./MathUtil";
+import { Vec3 } from "./Vec3";
 
 export class Mat4x4 extends Float32Array {
     constructor() {
@@ -138,5 +139,53 @@ export class Mat4x4 extends Float32Array {
             0, 0, r3c2, 0
         ]);
         return m;
+    }
+
+
+    public static transpose(m: Mat4x4): Mat4x4 {
+        const t = new Mat4x4();
+        t.set([
+            m[0], m[4], m[8], m[12],
+            m[1], m[5], m[9], m[13],
+            m[2], m[6], m[10], m[14],
+            m[3], m[7], m[11], m[15]
+        ]);
+        return t;
+    }
+
+    public static lookAt(eye : Vec3 , target: Vec3, up: Vec3): Mat4x4
+    {
+        const forward = Vec3.normalize(Vec3.subtract(target, eye));
+        const right = Vec3.normalize(Vec3.cross( up, forward));
+        up  = Vec3.cross(forward, right);
+
+        const lookAt = new Mat4x4();
+        lookAt.set([
+            right.x, up.x,forward.x,0,
+            right.y,up.y, forward.y,0,
+            right.z,up.z,forward.z,0,
+            -Vec3.dot(eye, right),-Vec3.dot(eye, up),-Vec3.dot(eye, forward),1
+        ]);
+
+        return lookAt
+    }
+
+    public static lookAt2(eye : Vec3 , target: Vec3, up: Vec3): Mat4x4
+    {
+        const translate = Mat4x4.translation(-eye.x, -eye.y, -eye.z);
+
+        const forward = Vec3.normalize(Vec3.subtract(target, eye));
+        const right = Vec3.normalize(Vec3.cross( up, forward));
+        up  = Vec3.cross(forward, right);
+        const rotation = new Mat4x4();
+
+        rotation.set([
+            right.x, right.y,right.z,0,
+            up.x,up.y,up.z,0,
+            forward.x,forward.y,forward.z,0,
+            0,0,0,1
+        ]);
+
+        return Mat4x4.multiply(Mat4x4.transpose(rotation), translate);
     }
 }
