@@ -2,8 +2,10 @@ export class Texture2D {
     public texture!: GPUTexture;
     public sampler!: GPUSampler;
 
-    constructor(private device: GPUDevice) {
-
+    constructor(private device: GPUDevice, texture: GPUTexture|null = null) {
+        if(texture){
+            this.texture = texture;
+        }
     }
 
     public static async create(device: GPUDevice, image: HTMLImageElement) {
@@ -16,6 +18,21 @@ export class Texture2D {
         const texture = new Texture2D(device);
         texture.initializeFromData(new Uint8Array([255, 255, 255, 255]), 1, 1);
         return texture;
+    }
+
+    public static createDepthTexture(device: GPUDevice, width: number, height: number) : Texture2D {
+
+        const depthTexture = device.createTexture({
+            label: "Depth Texture",
+            size: {
+              width: width,
+              height: height,
+            },
+            format: "depth32float",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
+          });
+
+        return new Texture2D(device, depthTexture);
     }
 
     private createTextureAndSampler(width: number, height: number) {
