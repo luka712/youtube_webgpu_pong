@@ -1,5 +1,5 @@
+import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../camera/Camera";
-import { GeometryBuffersCollection } from "../geometry/GeometryBuffersCollection";
 import { Color } from "../math/Color";
 import { Mat4x4 } from "../math/Mat4x4";
 import { Vec2 } from "../math/Vec2";
