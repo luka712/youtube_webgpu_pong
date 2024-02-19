@@ -4,6 +4,8 @@ import { Camera } from "./camera/Camera";
 import { Ball } from "./game_objects/Ball";
 import { Paddle } from "./game_objects/Paddle";
 import { GeometryBuilder } from "./geometry/GeometryBuilder";
+import { AmbientLight } from "./lights/AmbientLight";
+import { DirectionalLight } from "./lights/DirectionalLight";
 import { Color } from "./math/Color";
 import { Mat4x4 } from "./math/Mat4x4";
 import { Vec2 } from "./math/Vec2";
@@ -37,21 +39,30 @@ async function init() {
   // DEPTH TEXTURE 
   const depthTexture = Texture2D.createDepthTexture(device, canvas.width, canvas.height);
 
-
+  // LIGHTS
+  const ambientLight = new AmbientLight(device);
+  ambientLight.intensity = 0.2;
+  ambientLight.color = new Color(1, 1, 1, 1);
+  const directionalLight = new DirectionalLight(device);
+  directionalLight.intensity = 1;
+  directionalLight.color = new Color(1, 1, 1, 1);
+  directionalLight.direction = new Vec3(0, 0, 1);
 
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
   camera.eye = new Vec3(0,0, -20);
-  const paddle1 = new Paddle(device, camera);
+  const paddle1 = new Paddle(device, camera, ambientLight, directionalLight);
   paddle1.position.x = -10;
   paddle1.color = new Color(1,0,0,1);
-  const paddle2 = new Paddle(device, camera);
+  const paddle2 = new Paddle(device, camera, ambientLight, directionalLight);
   paddle2.position.x = 10;
   paddle2.color = new Color(0,0,1,1);
-  const ball = new Ball(device, camera)
+  const ball = new Ball(device, camera, ambientLight, directionalLight)
 
 
   const update = () => {
+    directionalLight.update();
+    ambientLight.update();
     camera.update();
     paddle1.update();
     paddle2.update();
