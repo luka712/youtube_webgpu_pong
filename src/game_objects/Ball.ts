@@ -4,8 +4,10 @@ import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
 import { Color } from "../math/Color";
 import { Mat4x4 } from "../math/Mat4x4";
+import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { RenderPipeline } from "../render_pipelines/RenderPipeline";
+import { UnlitRenderPipeline } from "../render_pipelines/UnlitRenderPipeline";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
 export class Ball {
@@ -19,9 +21,12 @@ export class Ball {
 
     public color = new Color(1, 1, 1, 1);
 
-    constructor(device: GPUDevice, camera: Camera, ambientLight: AmbientLight, directionalLight: DirectionalLight) {
+    constructor(device: GPUDevice, camera: Camera, 
+        ambientLight: AmbientLight, directionalLight: DirectionalLight) {
+
         this.transformBuffer = new UniformBuffer(device, this.transform, "Ball Transform");
-        this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, ambientLight, directionalLight);
+        this.pipeline = new RenderPipeline(device, camera, this.transformBuffer,
+             ambientLight, directionalLight);
     }
 
     public update() {

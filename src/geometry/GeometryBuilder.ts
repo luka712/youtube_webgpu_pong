@@ -11,7 +11,6 @@ export class GeometryBuilder {
         ]);
 
         let indices = new Uint16Array([
-
             0, 1, 2, // t1
             1, 3, 2 // t2 
         ]);
@@ -30,14 +29,7 @@ export class GeometryBuilder {
             1, 0  // top right
         ])
 
-        let normals = new Float32Array([
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1
-        ]);
-
-        return new Geometry(vertices, indices, colors, texCoords, normals);
+        return new Geometry(vertices, indices, colors, texCoords);
     }
 
     public createCubeGeometry(): Geometry {
@@ -45,9 +37,9 @@ export class GeometryBuilder {
         let vertices = new Float32Array([
             // front
             -0.5, -0.5, -0.5, // bottom left
-            -0.5, 0.5, -0.5, // top left
-            0.5, -0.5, -0.5, // bottom right
-            0.5, 0.5, -0.5, // top right
+            -0.5, 0.5,  -0.5, // top left
+            0.5, -0.5,  -0.5, // bottom right
+            0.5, 0.5,   -0.5, // top right
             // back
             -0.5, -0.5, 0.5, // bottom left
             -0.5, 0.5, 0.5, // top left
@@ -168,28 +160,27 @@ export class GeometryBuilder {
 
         let normals = new Float32Array([
             // front
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-
+            0,0,-1,
+            0,0,-1,
+            0,0,-1,
+            0,0,-1,
             // back
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
+            0,0,1,
+            0,0,1,
+            0,0,1,
+            0,0,1,
 
             // left
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
+            -1,0,0,
+            -1,0,0,
+            -1,0,0,
+            -1,0,0,
 
             // right
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
+            1,0,0,
+            1,0,0,
+            1,0,0,
+            1,0,0,
 
             // top
             0,1,0,
@@ -201,7 +192,7 @@ export class GeometryBuilder {
             0,-1,0,
             0,-1,0,
             0,-1,0,
-            0,-1,0,
+            0,-1,0
         ]);
 
         return new Geometry(vertices, indices, colors, texCoords, normals);

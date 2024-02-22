@@ -38,8 +38,9 @@ export class RenderPipeline {
         this.diffuseColorBuffer.update(value);
     }
 
-    constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer,
-        ambientLight: AmbientLight, directionalLight: DirectionalLight) {
+    constructor(private device: GPUDevice, camera: Camera, 
+        transformsBuffer: UniformBuffer,
+         ambientLight: AmbientLight, directionalLight: DirectionalLight) {
 
         this.textureTillingBuffer = new UniformBuffer(device,
             this._textureTilling,
@@ -87,7 +88,7 @@ export class RenderPipeline {
                     format: "float32x2"
                 }
             ],
-        })
+        });
 
         bufferLayout.push({
             arrayStride: 3 * Float32Array.BYTES_PER_ELEMENT,
@@ -98,7 +99,7 @@ export class RenderPipeline {
                     format: "float32x3"
                 }
             ],
-        })
+        });
 
         const vertexGroupLayout = device.createBindGroupLayout({
             entries: [
@@ -147,6 +148,7 @@ export class RenderPipeline {
         });
 
         const lightsBindGroupLayout = device.createBindGroupLayout({
+            label: "Lights Bind Group Layout",
             entries: [
                 {
                     binding: 0,
@@ -166,7 +168,7 @@ export class RenderPipeline {
                 vertexGroupLayout, // group 0,
                 projectionViewGroupLayout, // group 1
                 this.materialBindGroupLayout, // group 2
-                lightsBindGroupLayout, // group 3
+                lightsBindGroupLayout // group 3
             ]
         });
 
@@ -176,11 +178,11 @@ export class RenderPipeline {
             vertex: {
                 buffers: bufferLayout,
                 module: shaderModule,
-                entryPoint: "unlitMaterialVS"
+                entryPoint: "materialVS"
             },
             fragment: {
                 module: shaderModule,
-                entryPoint: "unlitMaterialFS",
+                entryPoint: "materialFS",
                 targets: [{
                     format: "bgra8unorm"
                 }]
@@ -227,6 +229,7 @@ export class RenderPipeline {
         })
 
         this.lightsBindGroup = device.createBindGroup({
+            label: "Lights Bind Group",
             layout: lightsBindGroupLayout,
             entries: [
                 {
@@ -261,7 +264,7 @@ export class RenderPipeline {
                     binding: 2,
                     resource: {
                         buffer: this.diffuseColorBuffer.buffer
-                    }
+                    } 
                 }
             ]
         });
@@ -270,7 +273,9 @@ export class RenderPipeline {
     public draw(
         renderPassEncoder: GPURenderPassEncoder,
         buffers: GeometryBuffers,
-        instanceCount = 1) {
+        instanceCount = 1) 
+        
+    {
         renderPassEncoder.setPipeline(this.renderPipeline);
         renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
         renderPassEncoder.setVertexBuffer(1, buffers.colorsBuffer);

@@ -41,12 +41,12 @@ async function init() {
 
   // LIGHTS
   const ambientLight = new AmbientLight(device);
-  ambientLight.intensity = 0.2;
   ambientLight.color = new Color(1, 1, 1, 1);
+  ambientLight.intensity = 0.2;
   const directionalLight = new DirectionalLight(device);
-  directionalLight.intensity = 1;
   directionalLight.color = new Color(1, 1, 1, 1);
-  directionalLight.direction = new Vec3(0, 0, 1);
+  directionalLight.intensity = 1;
+  directionalLight.direction = new Vec3(0,0,1);
 
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
@@ -57,12 +57,12 @@ async function init() {
   const paddle2 = new Paddle(device, camera, ambientLight, directionalLight);
   paddle2.position.x = 10;
   paddle2.color = new Color(0,0,1,1);
-  const ball = new Ball(device, camera, ambientLight, directionalLight)
+  const ball = new Ball(device, camera, ambientLight, directionalLight);
 
 
   const update = () => {
-    directionalLight.update();
     ambientLight.update();
+    directionalLight.update();
     camera.update();
     paddle1.update();
     paddle2.update();
