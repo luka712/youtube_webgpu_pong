@@ -2,6 +2,7 @@ import { GeometryBuffers } from "../attribute_buffers/GeometryBuffers";
 import { Camera } from "../camera/Camera";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
+import { PointLightsCollection } from "../lights/PointLight";
 import { Color } from "../math/Color";
 import { Vec2 } from "../math/Vec2";
 import shaderSource from "../shaders/MaterialShader.wgsl?raw"
@@ -39,8 +40,8 @@ export class RenderPipeline {
     }
 
     constructor(private device: GPUDevice, camera: Camera, 
-        transformsBuffer: UniformBuffer,
-         ambientLight: AmbientLight, directionalLight: DirectionalLight) {
+        transformsBuffer: UniformBuffer, normalMatrixBuffer: UniformBuffer,
+         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLightCollection: PointLightsCollection) {
 
         this.textureTillingBuffer = new UniformBuffer(device,
             this._textureTilling,
@@ -112,6 +113,11 @@ export class RenderPipeline {
                     binding: 1,
                     visibility: GPUShaderStage.VERTEX,
                     buffer: {}
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {}
                 }
             ]
         });
@@ -157,6 +163,11 @@ export class RenderPipeline {
                 },
                 {
                     binding: 1,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    buffer: {}
+                },
+                {
+                    binding: 2,
                     visibility: GPUShaderStage.FRAGMENT,
                     buffer: {}
                 }
@@ -209,6 +220,12 @@ export class RenderPipeline {
                 {
                     binding: 1,
                     resource: {
+                        buffer: normalMatrixBuffer.buffer
+                    }
+                },
+                {
+                    binding: 2,
+                    resource: {
                         buffer: this.textureTillingBuffer.buffer
                     }
                 }
@@ -242,6 +259,12 @@ export class RenderPipeline {
                     binding: 1,
                     resource: {
                         buffer: directionalLight.buffer.buffer
+                    }
+                },
+                {
+                    binding: 2,
+                    resource: {
+                        buffer: pointLightCollection.buffer.buffer
                     }
                 }
             ]

@@ -12,26 +12,29 @@ import { RenderPipeline } from "../render_pipelines/RenderPipeline";
 import { UnlitRenderPipeline } from "../render_pipelines/UnlitRenderPipeline";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
-export class Ball {
+export class Floor {
     private pipeline: RenderPipeline;
     private transformBuffer: UniformBuffer;
     private normalMatrixBuffer: UniformBuffer;
 
     private transform = Mat4x4.identity();
 
-    public scale = new Vec3(1, 1, 1);
-    public position = new Vec3(0, 0, 0);
+    public scale = new Vec3(40, 40, 1);
+    public position = new Vec3(0, 0, 1);
 
-    public color = new Color(1, 1, 1, 1);
+    public color = new Color(0.2, 0.2, 0.2, 1);
 
-    constructor(device: GPUDevice, camera: Camera, 
+    private angle = 0;
+
+    constructor(device: GPUDevice, camera: Camera,
         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLightCollection: PointLightsCollection) {
 
-        this.transformBuffer = new UniformBuffer(device, this.transform, "Ball Transform");
-        this.normalMatrixBuffer = new UniformBuffer(device, Mat4x4.identity(), "Ball Normal Matrix");
+        this.transformBuffer = new UniformBuffer(device, this.transform, "Floor Transform");
+        this.normalMatrixBuffer = new UniformBuffer(device, 16 * Float32Array.BYTES_PER_ELEMENT, "Floor Normal Matrix");
         
-        this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, this.normalMatrixBuffer,
-             ambientLight, directionalLight, pointLightCollection);
+        this.pipeline = new RenderPipeline(device, camera, 
+            this.transformBuffer, this.normalMatrixBuffer,
+            ambientLight, directionalLight, pointLightCollection);
     }
 
     public update() {
@@ -39,14 +42,15 @@ export class Ball {
         const translate = Mat4x4.translation(this.position.x, this.position.y, this.position.z);
         this.transform = Mat4x4.multiply(translate, scale);
 
-        this.transformBuffer.update(this.transform);
 
+        this.transformBuffer.update(this.transform);
 
         let normalMatrix = Mat3x3.fromMat4x4(this.transform);
         normalMatrix = Mat3x3.inverse(normalMatrix);
         normalMatrix = Mat3x3.transpose(normalMatrix);
 
         this.normalMatrixBuffer.update(Mat3x3.to16AlignedMat3x3(normalMatrix));
+
     }
 
     public draw(renderPassEncoder: GPURenderPassEncoder) {
