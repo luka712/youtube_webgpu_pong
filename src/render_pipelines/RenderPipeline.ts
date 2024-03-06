@@ -41,7 +41,7 @@ export class RenderPipeline {
 
     constructor(private device: GPUDevice, camera: Camera, 
         transformsBuffer: UniformBuffer, normalMatrixBuffer: UniformBuffer,
-         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLightCollection: PointLightsCollection) {
+         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
 
         this.textureTillingBuffer = new UniformBuffer(device,
             this._textureTilling,
@@ -264,7 +264,7 @@ export class RenderPipeline {
                 {
                     binding: 2,
                     resource: {
-                        buffer: pointLightCollection.buffer.buffer
+                        buffer: pointLights.buffer.buffer
                     }
                 }
             ]
