@@ -39,9 +39,17 @@ export class RenderPipeline {
         this.diffuseColorBuffer.update(value);
     }
 
-    constructor(private device: GPUDevice, camera: Camera, 
+    private shininessBuffer: UniformBuffer;
+    private _shininess = 1;
+
+    public set shininess(value: number) {
+        this._shininess = value;
+        this.shininessBuffer.update(new Float32Array([value]));
+    }
+
+    constructor(private device: GPUDevice, camera: Camera,
         transformsBuffer: UniformBuffer, normalMatrixBuffer: UniformBuffer,
-         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
+        ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
 
         this.textureTillingBuffer = new UniformBuffer(device,
             this._textureTilling,
@@ -50,6 +58,12 @@ export class RenderPipeline {
         this.diffuseColorBuffer = new UniformBuffer(device,
             this._diffuseColor,
             "Diffuse Color Buffer");
+
+        this.shininessBuffer = new UniformBuffer(device,
+            Float32Array.BYTES_PER_ELEMENT * 4,
+            "Shininess Buffer");
+
+        this.shininess = 64.0;
 
 
         const shaderModule = device.createShaderModule({
@@ -129,6 +143,11 @@ export class RenderPipeline {
                     binding: 0,
                     visibility: GPUShaderStage.VERTEX,
                     buffer: {}
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {}
                 }
             ]
         });
@@ -147,6 +166,11 @@ export class RenderPipeline {
                 },
                 {
                     binding: 2,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    buffer: {}
+                },
+                {
+                    binding: 3,
                     visibility: GPUShaderStage.FRAGMENT,
                     buffer: {}
                 }
@@ -239,6 +263,12 @@ export class RenderPipeline {
                     binding: 0,
                     resource: {
                         buffer: camera.buffer.buffer
+                    },
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: camera.eyeBuffer.buffer
                     }
                 }
             ]
@@ -287,7 +317,13 @@ export class RenderPipeline {
                     binding: 2,
                     resource: {
                         buffer: this.diffuseColorBuffer.buffer
-                    } 
+                    }
+                },
+                {
+                    binding: 3,
+                    resource: {
+                        buffer: this.shininessBuffer.buffer
+                    }
                 }
             ]
         });
@@ -296,9 +332,7 @@ export class RenderPipeline {
     public draw(
         renderPassEncoder: GPURenderPassEncoder,
         buffers: GeometryBuffers,
-        instanceCount = 1) 
-        
-    {
+        instanceCount = 1) {
         renderPassEncoder.setPipeline(this.renderPipeline);
         renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
         renderPassEncoder.setVertexBuffer(1, buffers.colorsBuffer);

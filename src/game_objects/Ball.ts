@@ -22,7 +22,7 @@ export class Ball {
     public scale = new Vec3(1, 1, 1);
     public position = new Vec3(0, 0, 0);
 
-    public color = new Color(1, 1, 1, 1);
+    public color = new Color(0.5, 0.5, 0.5, 1);
 
     constructor(device: GPUDevice, camera: Camera, 
         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLightCollection: PointLightsCollection) {

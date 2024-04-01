@@ -1,12 +1,12 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../camera/Camera";
+import { InputManager } from "../input/InputManager";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
 import { PointLightsCollection } from "../lights/PointLight";
 import { Color } from "../math/Color";
 import { Mat3x3 } from "../math/Mat3x3";
 import { Mat4x4 } from "../math/Mat4x4";
-import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { RenderPipeline } from "../render_pipelines/RenderPipeline";
 import { UnlitRenderPipeline } from "../render_pipelines/UnlitRenderPipeline";
@@ -24,9 +24,10 @@ export class Paddle {
 
     public color = new Color(1, 1, 1, 1);
 
-    private angle = 0;
+    public playerOne = true;
+    private speed = 0.2;
 
-    constructor(device: GPUDevice, camera: Camera,
+    constructor(device: GPUDevice, private inputManager: InputManager, camera: Camera,
         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLightCollection: PointLightsCollection) {
 
         this.transformBuffer = new UniformBuffer(device, this.transform, "Paddle Transform");
@@ -38,12 +39,34 @@ export class Paddle {
     }
 
     public update() {
-        this.angle += 0.01;
+
+        let dirY = 0;
+
+        if(this.playerOne) {
+            if(this.inputManager.isKeyDown("w")) {
+                dirY = 1;
+            }
+            else if(this.inputManager.isKeyDown("s")) {
+                dirY = -1;
+            }
+        }
+        else {
+            if(this.inputManager.isKeyDown("ArrowUp")) {
+                dirY = 1;
+            }
+            else if(this.inputManager.isKeyDown("ArrowDown")) {
+                dirY = -1;
+            }
+        }
+
+        this.position.y += dirY * this.speed;
+
+        this.position.y = Math.max(-5, this.position.y);
+        this.position.y = Math.min(5, this.position.y);
+
         const scale = Mat4x4.scale(this.scale.x, this.scale.y, this.scale.z);
         const translate = Mat4x4.translation(this.position.x, this.position.y, this.position.z);
-        const rotation = Mat4x4.rotationZ(this.angle);
-        this.transform = Mat4x4.multiply(translate, rotation);
-        this.transform = Mat4x4.multiply(this.transform, scale);
+        this.transform = Mat4x4.multiply(translate, scale);
 
         this.transformBuffer.update(this.transform);
 
