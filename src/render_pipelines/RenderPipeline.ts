@@ -40,16 +40,16 @@ export class RenderPipeline {
     }
 
     private shininessBuffer: UniformBuffer;
-    private _shininess = 1;
+    private _shininess = 32;
 
     public set shininess(value: number) {
         this._shininess = value;
         this.shininessBuffer.update(new Float32Array([value]));
     }
 
-    constructor(private device: GPUDevice, camera: Camera,
+    constructor(private device: GPUDevice, camera: Camera, 
         transformsBuffer: UniformBuffer, normalMatrixBuffer: UniformBuffer,
-        ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
+         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
 
         this.textureTillingBuffer = new UniformBuffer(device,
             this._textureTilling,
@@ -60,11 +60,8 @@ export class RenderPipeline {
             "Diffuse Color Buffer");
 
         this.shininessBuffer = new UniformBuffer(device,
-            Float32Array.BYTES_PER_ELEMENT * 4,
+            new Float32Array([this._shininess]),
             "Shininess Buffer");
-
-        this.shininess = 64.0;
-
 
         const shaderModule = device.createShaderModule({
             code: shaderSource
@@ -137,6 +134,7 @@ export class RenderPipeline {
         });
 
         // The projection view group - for camera
+        // TODO: rename to cameraViewGroupLayout
         const projectionViewGroupLayout = device.createBindGroupLayout({
             entries: [
                 {
@@ -256,6 +254,7 @@ export class RenderPipeline {
             ]
         });
 
+        // TODO: rename to cameraViewBindGroup
         this.projectionViewBindGroup = device.createBindGroup({
             layout: projectionViewGroupLayout,
             entries: [
@@ -263,7 +262,7 @@ export class RenderPipeline {
                     binding: 0,
                     resource: {
                         buffer: camera.buffer.buffer
-                    },
+                    }
                 },
                 {
                     binding: 1,
@@ -317,13 +316,13 @@ export class RenderPipeline {
                     binding: 2,
                     resource: {
                         buffer: this.diffuseColorBuffer.buffer
-                    }
+                    } 
                 },
                 {
                     binding: 3,
                     resource: {
                         buffer: this.shininessBuffer.buffer
-                    }
+                    } 
                 }
             ]
         });
@@ -332,7 +331,9 @@ export class RenderPipeline {
     public draw(
         renderPassEncoder: GPURenderPassEncoder,
         buffers: GeometryBuffers,
-        instanceCount = 1) {
+        instanceCount = 1) 
+        
+    {
         renderPassEncoder.setPipeline(this.renderPipeline);
         renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
         renderPassEncoder.setVertexBuffer(1, buffers.colorsBuffer);

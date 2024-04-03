@@ -37,9 +37,9 @@ async function init() {
     format: "bgra8unorm"
   });
 
-  const inputManager = new InputManager();
-
   GeometryBuffersCollection.intitialize(device);
+
+  const inputManager = new InputManager();
 
   // DEPTH TEXTURE 
   const depthTexture = Texture2D.createDepthTexture(device, canvas.width, canvas.height);
@@ -52,27 +52,25 @@ async function init() {
   directionalLight.color = new Color(1, 1, 1, 1);
   directionalLight.intensity = 1;
   directionalLight.direction = new Vec3(0,0,1);
-  directionalLight.specularColor = new Color(1, 0, 0, 1);
-  directionalLight.specularIntensity = 1;
   const pointLights = new PointLightsCollection(device);
   pointLights.lights[0].color = new Color(1, 0, 0, 1);
-  pointLights.lights[0].intensity = 1;
-  pointLights.lights[0].position = new Vec3(5, 0, -2);
+  pointLights.lights[0].intensity = 2;
+  pointLights.lights[0].specularIntensity = 16;
+  pointLights.lights[0].specularColor = Color.red();
+  pointLights.lights[0].position = new Vec3(4, 2, -1);
   pointLights.lights[1].color = new Color(0, 1, 0, 1);
   pointLights.lights[1].intensity = 2;
-  pointLights.lights[1].position = new Vec3(-4, 2, -2);
+  pointLights.lights[1].position = new Vec3(-4, 2, -1);
   pointLights.lights[2].color = new Color(0, 0, 1, 1);
   pointLights.lights[2].intensity = 2;
-  pointLights.lights[2].position = new Vec3(2, -4, -2);
-  pointLights.lights[2].constAtten = 0.4;
-  pointLights.lights[2].linearAtten = 0.08;
-  pointLights.lights[2].quadAtten = 0.001;
+  pointLights.lights[2].position = new Vec3(2, -4, -1);
 
 
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
   camera.eye = new Vec3(0,0, -20);
   const paddle1 = new Paddle(device, inputManager, camera, ambientLight, directionalLight, pointLights);
+  paddle1.playerOne = true;
   paddle1.position.x = -10;
   paddle1.color = new Color(1,0.3,0.3,1);
   const paddle2 = new Paddle(device, inputManager, camera, ambientLight, directionalLight,pointLights);
