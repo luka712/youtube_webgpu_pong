@@ -1,5 +1,6 @@
 import { GeometryBuffers } from "../attribute_buffers/GeometryBuffers";
 import { Camera } from "../camera/Camera";
+import { ShadowCamera } from "../camera/ShadowCamera";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
 import { PointLightsCollection } from "../lights/PointLight";
@@ -20,9 +21,19 @@ export class RenderPipeline {
     private vertexBindGroup!: GPUBindGroup;
     private lightsBindGroup!: GPUBindGroup;
 
+    private _diffuseTexture: Texture2D;
+    private _shadowTexture: Texture2D;
+
     public set diffuseTexture(texture: Texture2D) {
-        this.materialBindGroup = this.createMaterialBindGroup(texture);
+        this._diffuseTexture = texture;
+        this.materialBindGroup = this.createMaterialBindGroup(this._diffuseTexture, this._shadowTexture);
     }
+
+    public set shadowTexture(texture: Texture2D) {
+        this._shadowTexture = texture;
+        this.materialBindGroup = this.createMaterialBindGroup(this._diffuseTexture, this._shadowTexture);
+    }
+
     private textureTillingBuffer: UniformBuffer;
     private _textureTilling: Vec2 = new Vec2(1, 1);
 
@@ -47,9 +58,9 @@ export class RenderPipeline {
         this.shininessBuffer.update(new Float32Array([value]));
     }
 
-    constructor(private device: GPUDevice, camera: Camera, 
+    constructor(private device: GPUDevice, camera: Camera, shadowCamera: ShadowCamera,
         transformsBuffer: UniformBuffer, normalMatrixBuffer: UniformBuffer,
-         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
+        ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
 
         this.textureTillingBuffer = new UniformBuffer(device,
             this._textureTilling,
@@ -146,6 +157,11 @@ export class RenderPipeline {
                     binding: 1,
                     visibility: GPUShaderStage.VERTEX,
                     buffer: {}
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {}
                 }
             ]
         });
@@ -171,6 +187,20 @@ export class RenderPipeline {
                     binding: 3,
                     visibility: GPUShaderStage.FRAGMENT,
                     buffer: {}
+                },
+                {
+                    binding: 4,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {
+                        sampleType: "depth"
+                    }
+                },
+                {
+                    binding: 5,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    sampler: {
+                        type: "comparison"
+                    }
                 }
             ]
         });
@@ -228,7 +258,9 @@ export class RenderPipeline {
             }
         });
 
-        this.diffuseTexture = Texture2D.createEmpty(device);
+        this._diffuseTexture = Texture2D.createEmpty(device);
+        this._shadowTexture = Texture2D.createShadowTexture(device, 1024, 1024);
+        this.materialBindGroup = this.createMaterialBindGroup(this._diffuseTexture, this._shadowTexture);
 
         this.vertexBindGroup = device.createBindGroup({
             layout: vertexGroupLayout,
@@ -269,6 +301,12 @@ export class RenderPipeline {
                     resource: {
                         buffer: camera.eyeBuffer.buffer
                     }
+                },
+                {
+                    binding: 2,
+                    resource: {
+                        buffer: shadowCamera.buffer.buffer
+                    }
                 }
             ]
 
@@ -300,7 +338,7 @@ export class RenderPipeline {
         });
     }
 
-    private createMaterialBindGroup(texture: Texture2D) {
+    private createMaterialBindGroup(texture: Texture2D, shadowTexture: Texture2D) {
         return this.device.createBindGroup({
             layout: this.materialBindGroupLayout,
             entries: [
@@ -316,13 +354,21 @@ export class RenderPipeline {
                     binding: 2,
                     resource: {
                         buffer: this.diffuseColorBuffer.buffer
-                    } 
+                    }
                 },
                 {
                     binding: 3,
                     resource: {
                         buffer: this.shininessBuffer.buffer
-                    } 
+                    }
+                },
+                {
+                    binding: 4,
+                    resource: shadowTexture.texture.createView()
+                },
+                {
+                    binding: 5,
+                    resource: shadowTexture.sampler
                 }
             ]
         });
@@ -331,9 +377,7 @@ export class RenderPipeline {
     public draw(
         renderPassEncoder: GPURenderPassEncoder,
         buffers: GeometryBuffers,
-        instanceCount = 1) 
-        
-    {
+        instanceCount = 1) {
         renderPassEncoder.setPipeline(this.renderPipeline);
         renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
         renderPassEncoder.setVertexBuffer(1, buffers.colorsBuffer);

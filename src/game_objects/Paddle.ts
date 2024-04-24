@@ -1,5 +1,6 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../camera/Camera";
+import { ShadowCamera } from "../camera/ShadowCamera";
 import { InputManager } from "../input/InputManager";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
@@ -10,11 +11,14 @@ import { Mat4x4 } from "../math/Mat4x4";
 import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { RenderPipeline } from "../render_pipelines/RenderPipeline";
+import { ShadowRenderPipeline } from "../render_pipelines/ShadowRenderPipeline";
 import { UnlitRenderPipeline } from "../render_pipelines/UnlitRenderPipeline";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
 export class Paddle {
-    private pipeline: RenderPipeline;
+    public pipeline: RenderPipeline;
+    private shadowPipeline: ShadowRenderPipeline;
+
     private transformBuffer: UniformBuffer;
     private normalMatrixBuffer: UniformBuffer;
 
@@ -31,15 +35,17 @@ export class Paddle {
 
     constructor(device: GPUDevice,
         private inputManager: InputManager,
-        camera: Camera,
+        camera: Camera, shadowCamera: ShadowCamera,
         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
 
         this.transformBuffer = new UniformBuffer(device, this.transform, "Paddle Transform");
 
         this.normalMatrixBuffer = new UniformBuffer(device, 16 * Float32Array.BYTES_PER_ELEMENT, "Paddle Normal Matrix");
 
-        this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, this.normalMatrixBuffer,
+        this.pipeline = new RenderPipeline(device, camera, shadowCamera, this.transformBuffer, this.normalMatrixBuffer,
             ambientLight, directionalLight, pointLights);
+
+        this.shadowPipeline = new ShadowRenderPipeline(device, shadowCamera, this.transformBuffer);
     }
 
     public update() {
@@ -87,5 +93,9 @@ export class Paddle {
     public draw(renderPassEncoder: GPURenderPassEncoder) {
         this.pipeline.diffuseColor = this.color;
         this.pipeline.draw(renderPassEncoder, GeometryBuffersCollection.cubeBuffers);
+    }
+
+    public drawShadows(renderPassEncoder: GPURenderPassEncoder) {
+        this.shadowPipeline.draw(renderPassEncoder, GeometryBuffersCollection.cubeBuffers);
     }
 }

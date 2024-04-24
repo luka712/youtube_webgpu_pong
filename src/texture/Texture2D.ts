@@ -20,8 +20,7 @@ export class Texture2D {
         return texture;
     }
 
-    public static createDepthTexture(device: GPUDevice, width: number, height: number) : Texture2D {
-
+    public static createDepthTexture(device: GPUDevice , width: number, height: number) {
         const depthTexture = device.createTexture({
             label: "Depth Texture",
             size: {
@@ -32,7 +31,27 @@ export class Texture2D {
             usage: GPUTextureUsage.RENDER_ATTACHMENT
           });
 
-        return new Texture2D(device, depthTexture);
+          return new Texture2D(device, depthTexture);
+    }
+
+    public static createShadowTexture(device: GPUDevice , width: number, height: number) {
+        const depthTexture = device.createTexture({
+            label: "Shadow Map Depth Texture",
+            size: {
+              width: width,
+              height: height,
+            },
+            format: "depth32float",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING
+          });
+
+          const tex =  new Texture2D(device, depthTexture);
+
+          tex.sampler = device.createSampler({
+            compare: "less-equal",
+          });
+
+          return tex;
     }
 
     private createTextureAndSampler(width: number, height: number) {

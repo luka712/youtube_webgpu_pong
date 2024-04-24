@@ -1,6 +1,7 @@
 import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
 import { GeometryBuffersCollection } from "./attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "./camera/Camera";
+import { ShadowCamera } from "./camera/ShadowCamera";
 import { Ball } from "./game_objects/Ball";
 import { Floor } from "./game_objects/Floor";
 import { Paddle } from "./game_objects/Paddle";
@@ -43,6 +44,7 @@ async function init() {
 
   // DEPTH TEXTURE 
   const depthTexture = Texture2D.createDepthTexture(device, canvas.width, canvas.height);
+  const shadowTexture = Texture2D.createShadowTexture(device, 1024, 1024);
 
   // LIGHTS
   const ambientLight = new AmbientLight(device);
@@ -67,18 +69,26 @@ async function init() {
 
 
   // GAME OBJECTS
+  
+  // - CAMERA
   const camera = new Camera(device, canvas.width / canvas.height);
   camera.eye = new Vec3(0,0, -20);
-  const paddle1 = new Paddle(device, inputManager, camera, ambientLight, directionalLight, pointLights);
-  paddle1.playerOne = true;
+  const shadowCamera = new ShadowCamera(device);
+  shadowCamera.eye = new Vec3(0, 0, -20); // Let's imagine it as negative directional light * -20 ( or any other fitting scalar)
+
+  // - PADDLES, BALL, FLOOR etc...
+  const paddle1 = new Paddle(device, inputManager, camera, shadowCamera, ambientLight, directionalLight, pointLights);
+  paddle1.pipeline.shadowTexture = shadowTexture;
   paddle1.position.x = -10;
   paddle1.color = new Color(1,0.3,0.3,1);
-  const paddle2 = new Paddle(device, inputManager, camera, ambientLight, directionalLight,pointLights);
-  paddle2.playerOne = false;
+  const paddle2 = new Paddle(device, inputManager, camera, shadowCamera, ambientLight, directionalLight,pointLights);
+  paddle2.pipeline.shadowTexture = shadowTexture;
   paddle2.position.x = 10;
   paddle2.color = new Color(0.3,0.3,1,1);
-  const ball = new Ball(device, camera, ambientLight, directionalLight,pointLights);
-  const floor = new Floor(device, camera, ambientLight, directionalLight,pointLights);
+  const ball = new Ball(device, camera, shadowCamera, ambientLight, directionalLight,pointLights);
+  ball.pipeline.shadowTexture = shadowTexture;
+  const floor = new Floor(device, camera, shadowCamera, ambientLight, directionalLight,pointLights);
+  floor.pipeline.shadowTexture = shadowTexture;
 
 
   const update = () => {
@@ -90,14 +100,32 @@ async function init() {
     ball.update();
     floor.update();
     pointLights.update();
+    shadowCamera.update();
   }
 
-  const draw = () => {
+  const shadowPass = (commandEncoder: GPUCommandEncoder) => {
+    
+    const renderPassEncoder = commandEncoder.beginRenderPass({
+      colorAttachments: [],
+      // CONFIGURE DEPTH
+      depthStencilAttachment: {
+        view: shadowTexture.texture.createView(),
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+        depthClearValue: 1.0,
+      },
+    });
 
-    update();
+    // DRAW HERE
+    paddle1.drawShadows(renderPassEncoder);
+    paddle2.drawShadows(renderPassEncoder)
+    ball.drawShadows(renderPassEncoder);
 
-    const commandEncoder = device.createCommandEncoder();
+    renderPassEncoder.end();
+  }
 
+  const scenePass = (commandEncoder: GPUCommandEncoder) => {
+    
     const renderPassEncoder = commandEncoder.beginRenderPass({
       colorAttachments: [{
         view: gpuContext.getCurrentTexture().createView(),
@@ -114,7 +142,6 @@ async function init() {
       },
     });
 
-
     // DRAW HERE
     paddle1.draw(renderPassEncoder);
     paddle2.draw(renderPassEncoder)
@@ -122,6 +149,19 @@ async function init() {
     floor.draw(renderPassEncoder);
 
     renderPassEncoder.end();
+
+  }
+
+
+  const draw = () => {
+
+    update();
+
+    const commandEncoder = device.createCommandEncoder();
+
+    shadowPass(commandEncoder);
+    scenePass(commandEncoder);
+
     device.queue.submit([
       commandEncoder.finish()
     ]);
