@@ -1,6 +1,7 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../camera/Camera";
 import { ShadowCamera } from "../camera/ShadowCamera";
+import { RectCollider } from "../collider/RectCollider";
 import { InputManager } from "../input/InputManager";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
@@ -32,6 +33,7 @@ export class Paddle {
     private speed = 0.2;
     public playerOne = true;
 
+    public collider = new RectCollider();
 
     constructor(device: GPUDevice,
         private inputManager: InputManager,
@@ -88,6 +90,11 @@ export class Paddle {
         this.normalMatrixBuffer.update(Mat3x3.to16AlignedMat3x3(normalMatrix));
 
         this.transformBuffer.update(this.transform);
+
+        this.collider.x = this.position.x - this.scale.x / 2;
+        this.collider.y = this.position.y - this.scale.y / 2;
+        this.collider.width = this.scale.x;
+        this.collider.height = this.scale.y;
     }
 
     public draw(renderPassEncoder: GPURenderPassEncoder) {

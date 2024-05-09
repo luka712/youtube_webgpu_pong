@@ -1,6 +1,7 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../camera/Camera";
 import { ShadowCamera } from "../camera/ShadowCamera";
+import { RectCollider } from "../collider/RectCollider";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
 import { PointLightsCollection } from "../lights/PointLight";
@@ -13,6 +14,7 @@ import { RenderPipeline } from "../render_pipelines/RenderPipeline";
 import { ShadowRenderPipeline } from "../render_pipelines/ShadowRenderPipeline";
 import { UnlitRenderPipeline } from "../render_pipelines/UnlitRenderPipeline";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
+import { Paddle } from "./Paddle";
 
 export class Ball {
     public pipeline: RenderPipeline;
@@ -26,6 +28,11 @@ export class Ball {
     public position = new Vec3(0, 0, 0);
 
     public color = new Color(1, 1, 1, 1);
+
+    private direction = new Vec2(10, 1);
+    private speed = 0.1;
+
+    public collider = new RectCollider();
 
     constructor(device: GPUDevice, camera: Camera, shadowCamera: ShadowCamera,
         ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
@@ -41,6 +48,15 @@ export class Ball {
     }
 
     public update() {
+
+        this.direction.normalize();
+        this.position.x += this.direction.x * this.speed;
+        this.position.y += this.direction.y * this.speed;
+
+        if(this.position.y > 5 || this.position.y < -5) {
+            this.direction.y *= -1;
+        }
+
         const scale = Mat4x4.scale(this.scale.x, this.scale.y, this.scale.z);
         const translate = Mat4x4.translation(this.position.x, this.position.y, this.position.z);
         this.transform = Mat4x4.multiply(translate, scale);
@@ -51,6 +67,11 @@ export class Ball {
         normalMatrix = Mat3x3.transpose(normalMatrix);
         normalMatrix = Mat3x3.inverse(normalMatrix);
         this.normalMatrixBuffer.update(Mat3x3.to16AlignedMat3x3(normalMatrix));
+
+        this.collider.x = this.position.x - this.scale.x / 2;
+        this.collider.y = this.position.y - this.scale.y / 2;
+        this.collider.width = this.scale.x;
+        this.collider.height = this.scale.y;
     }
 
     public draw(renderPassEncoder: GPURenderPassEncoder) {
@@ -60,5 +81,11 @@ export class Ball {
 
     public drawShadows(renderPassEncoder: GPURenderPassEncoder) {
         this.shadowPipeline.draw(renderPassEncoder, GeometryBuffersCollection.cubeBuffers);
+    }
+
+    public collidesPaddle(paddle: Paddle) {
+        if(this.collider.intersects(paddle.collider)){
+            this.direction.x *= -1;
+        }
     }
 }
