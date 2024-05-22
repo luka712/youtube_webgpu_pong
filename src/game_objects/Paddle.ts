@@ -18,6 +18,7 @@ import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
 export class Paddle {
     public pipeline: RenderPipeline;
+    public pipeline2: RenderPipeline;
     private shadowPipeline: ShadowRenderPipeline;
 
     private transformBuffer: UniformBuffer;
@@ -47,6 +48,9 @@ export class Paddle {
         this.pipeline = new RenderPipeline(device, camera, shadowCamera, this.transformBuffer, this.normalMatrixBuffer,
             ambientLight, directionalLight, pointLights);
 
+        this.pipeline2 = new RenderPipeline(device, camera, shadowCamera, this.transformBuffer, this.normalMatrixBuffer,
+            ambientLight, directionalLight, pointLights);
+
         this.shadowPipeline = new ShadowRenderPipeline(device, shadowCamera, this.transformBuffer);
     }
 
@@ -54,28 +58,28 @@ export class Paddle {
 
         let dirY = 0;
 
-        if(this.playerOne){
-            if(this.inputManager.isKeyDown("w")){
+        if (this.playerOne) {
+            if (this.inputManager.isKeyDown("w")) {
                 dirY = 1;
             }
-            if(this.inputManager.isKeyDown("s")){
+            if (this.inputManager.isKeyDown("s")) {
                 dirY = -1;
             }
         }
         else {
-            if(this.inputManager.isKeyDown("ArrowUp")){
+            if (this.inputManager.isKeyDown("ArrowUp")) {
                 dirY = 1;
             }
-            if(this.inputManager.isKeyDown("ArrowDown")){
+            if (this.inputManager.isKeyDown("ArrowDown")) {
                 dirY = -1;
             }
         }
 
         this.position.y += dirY * this.speed;
 
-        if(this.position.y > 5)
+        if (this.position.y > 5)
             this.position.y = 5;
-        if(this.position.y < -5)
+        if (this.position.y < -5)
             this.position.y = -5;
 
         const scale = Mat4x4.scale(this.scale.x, this.scale.y, this.scale.z);
@@ -100,6 +104,11 @@ export class Paddle {
     public draw(renderPassEncoder: GPURenderPassEncoder) {
         this.pipeline.diffuseColor = this.color;
         this.pipeline.draw(renderPassEncoder, GeometryBuffersCollection.cubeBuffers);
+    }
+
+    public drawSecond(renderPassEncoder: GPURenderPassEncoder) {
+        this.pipeline2.diffuseColor = this.color;
+        this.pipeline2.draw(renderPassEncoder, GeometryBuffersCollection.cubeBuffers);
     }
 
     public drawShadows(renderPassEncoder: GPURenderPassEncoder) {

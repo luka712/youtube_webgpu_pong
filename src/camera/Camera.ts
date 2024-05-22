@@ -11,7 +11,7 @@ export class Camera {
     // VIEW PROPERTIES
     public eye = new Vec3(0, 0, -3);
     public target = new Vec3(0, 0, 0);
-    private up = new Vec3(0, 1, 0);
+    public up = new Vec3(0, 1, 0);
 
     // PERSPECTIVE PROPERTIES
     public fov = 45;
