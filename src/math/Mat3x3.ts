@@ -1,6 +1,9 @@
 import { Mat2x2 } from "./Mat2x2";
 import { Mat4x4 } from "./Mat4x4";
 
+/**
+ * The 3x3 matrix class.
+ */
 export class Mat3x3 extends Float32Array {
     constructor() {
         super([
@@ -10,8 +13,16 @@ export class Mat3x3 extends Float32Array {
         ]);
     }
 
+    /**
+     * The byte size of the matrix.
+     */
     public static get BYTE_SIZE() { return 9 * Float32Array.BYTES_PER_ELEMENT; }
 
+    /**
+     * Transposes the matrix.
+     * @param m - The matrix to transpose.
+     * @returns The transposed matrix.
+     */
     public static transpose(m: Mat3x3): Mat3x3 {
         const result = new Mat3x3();
 
@@ -33,11 +44,24 @@ export class Mat3x3 extends Float32Array {
         return result;
     }
 
-
+    /**
+     * Finds the minor of the matrix.
+     * @param m - The matrix to find the minor of.
+     * @param row - The row to find the minor of.
+     * @param col - The column to find the minor of.
+     * @returns The minor of the matrix.
+     */
     public static minor(m: Mat3x3, row: number, col: number): number {
         return Mat2x2.determinant(Mat3x3.subMatrix(m, row, col));
     }
 
+    /**
+     * Find the cofactor of the matrix.
+     * @param m - The matrix to find the cofactor of.
+     * @param row - The row to find the cofactor of.
+     * @param col - The column to find the cofactor of.
+     * @returns The cofactor of the matrix.
+     */
     public static cofactor(m: Mat3x3, row: number, col: number): number {
         let sign = 1;
 
@@ -56,6 +80,13 @@ export class Mat3x3 extends Float32Array {
         return result;
     }
 
+    /**
+     * Gets the submatrix of the matrix.
+     * @param m - The matrix to get the submatrix of.
+     * @param row - The row to get the submatrix of.
+     * @param col - The column to get the submatrix of.
+     * @returns The submatrix of the matrix.
+     */
     public static subMatrix(m: Mat3x3, row: number, col: number): Mat2x2 {
         if (row > 2) {
             row = 2;
@@ -85,6 +116,11 @@ export class Mat3x3 extends Float32Array {
         return result;
     }
 
+    /**
+     * Find the determinant of the matrix.
+     * @param m - The matrix to find the determinant of.
+     * @returns The determinant of the matrix.
+     */
     public static determinant(m: Mat3x3): number {
         const a = Mat3x3.cofactor(m, 0, 0);
         const b = Mat3x3.cofactor(m, 0, 1);
@@ -93,6 +129,11 @@ export class Mat3x3 extends Float32Array {
         return m[0] * a + m[3] * b + m[6] * c;
     }
 
+    /**
+     * Inverts the matrix.
+     * @param m - The matrix to invert.
+     * @returns The inverted matrix.
+     */
     public static inverse(m: Mat3x3): Mat3x3 {
 
         const d = Mat3x3.determinant(m); //  m.determinant();
@@ -110,6 +151,11 @@ export class Mat3x3 extends Float32Array {
         return out;
     }
 
+    /**
+     * Creates a 3x3 matrix from a 4x4 matrix.
+     * @param m - The 4x4 matrix to create the 3x3 matrix from.
+     * @returns - The 3x3 matrix.
+     */
     public static fromMat4x4(m: Mat4x4): Mat3x3 {
         const r = new Mat3x3();
         r.set([
@@ -120,6 +166,11 @@ export class Mat3x3 extends Float32Array {
         return r;
     }
 
+    /**
+     * Transforms a 3x3 matrix to a 16 aligned 4x4 matrix.
+     * @param m - The 3x3 matrix to transform.
+     * @returns The 16 aligned 4x4 matrix.
+     */
     public static to16AlignedMat3x3(m: Mat3x3): Float32Array {
 
         const result = new Float32Array(16);

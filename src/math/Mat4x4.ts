@@ -1,6 +1,9 @@
 import { MathUtil } from "./MathUtil";
 import { Vec3 } from "./Vec3";
 
+/**
+ * The 4x4 matrix class.
+ */
 export class Mat4x4 extends Float32Array {
     constructor() {
         super([
@@ -11,8 +14,17 @@ export class Mat4x4 extends Float32Array {
         ]);
     }
 
+    /**
+     * The byte size of the matrix.
+     */
     public static get BYTE_SIZE() { return 16 * Float32Array.BYTES_PER_ELEMENT; }
 
+    /**
+     * Multiplies two matrices.
+     * @param a - The first matrix.
+     * @param b - The second matrix.
+     * @returns The product of the two matrices.
+     */
     public static multiply(a: Mat4x4, b: Mat4x4): Mat4x4 {
 
         const r0c0 = a[0] * b[0] + a[4] * b[1] + a[8] * b[2] + a[12] * b[3];
@@ -46,10 +58,21 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
+    /**
+     * Creates an identity matrix.
+     * @returns The identity matrix.
+     */
     public static identity(): Mat4x4 {
         return new Mat4x4();
     }
 
+    /**
+     * Creates a translation matrix.
+     * @param x - The x position.
+     * @param y - The y position.
+     * @param z - The z position.
+     * @returns The translation matrix.
+     */
     public static translation(x: number, y: number, z: number): Mat4x4 {
         const m = new Mat4x4();
         m.set([
@@ -61,6 +84,13 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
+    /**
+     * Creates a scale matrix.
+     * @param x - The x scale.
+     * @param y - The y scale.
+     * @param z - The z scale.
+     * @returns The scale matrix.
+     */
     public static scale(x: number, y: number, z: number): Mat4x4 {
         const m = new Mat4x4();
         m.set([
@@ -72,6 +102,11 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
+    /**
+     * Creates a rotation matrix around the x-axis.
+     * @param angle - The angle to rotate by in radians.
+     * @returns The rotation matrix around the x-axis.
+     */
     public static rotationX(angle: number): Mat4x4 {
         const s = Math.sin(angle);
         const c = Math.cos(angle);
@@ -87,6 +122,11 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
+    /**
+     * Creates a rotation matrix around the z-axis.
+     * @param angle - The angle to rotate by in radians.
+     * @returns The rotation matrix around the z-axis.
+     */
     public static rotationZ(angle: number): Mat4x4 {
         const s = Math.sin(angle);
         const c = Math.cos(angle);
@@ -102,6 +142,16 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
+    /**
+     * The orthographic projection matrix.
+     * @param left - The left side of the view.
+     * @param right - The right side of the view.
+     * @param bottom - The bottom side of the view.
+     * @param top - The top side of the view.
+     * @param near - The near side of the view.
+     * @param far - The far side of the view.
+     * @returns The orthographic projection matrix.
+     */
     public static orthographic(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4x4 {
         const r0c0 = 2 / (right - left);
         const r1c2 = 2 / (top - bottom);
@@ -121,6 +171,14 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
+    /**
+     * Creates a perspective projection matrix.
+     * @param fov - The field of view in degrees.
+     * @param aspect - The aspect ratio.
+     * @param near - The near plane.
+     * @param far - The far plane.
+     * @returns The perspective projection matrix.
+     */
     public static perspective(fov: number, aspect: number, near: number, far: number): Mat4x4 {
 
         const r = MathUtil.toRadians(fov);
@@ -141,7 +199,11 @@ export class Mat4x4 extends Float32Array {
         return m;
     }
 
-
+    /**
+     * Transposes a matrix.
+     * @param m - The matrix to transpose.
+     * @returns The transposed matrix.
+     */
     public static transpose(m: Mat4x4): Mat4x4 {
         const t = new Mat4x4();
         t.set([
@@ -153,6 +215,13 @@ export class Mat4x4 extends Float32Array {
         return t;
     }
 
+    /**
+     * Creates a look at matrix.
+     * @param eye - The eye position.
+     * @param target - The target position.
+     * @param up - The up vector.
+     * @returns The look at matrix.
+     */
     public static lookAt(eye : Vec3 , target: Vec3, up: Vec3): Mat4x4
     {
         const forward = Vec3.normalize(Vec3.subtract(target, eye));
@@ -168,24 +237,5 @@ export class Mat4x4 extends Float32Array {
         ]);
 
         return lookAt
-    }
-
-    public static lookAt2(eye : Vec3 , target: Vec3, up: Vec3): Mat4x4
-    {
-        const translate = Mat4x4.translation(-eye.x, -eye.y, -eye.z);
-
-        const forward = Vec3.normalize(Vec3.subtract(target, eye));
-        const right = Vec3.normalize(Vec3.cross( up, forward));
-        up  = Vec3.cross(forward, right);
-        const rotation = new Mat4x4();
-
-        rotation.set([
-            right.x, right.y,right.z,0,
-            up.x,up.y,up.z,0,
-            forward.x,forward.y,forward.z,0,
-            0,0,0,1
-        ]);
-
-        return Mat4x4.multiply(Mat4x4.transpose(rotation), translate);
     }
 }

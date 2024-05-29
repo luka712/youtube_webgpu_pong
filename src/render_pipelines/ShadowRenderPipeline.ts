@@ -4,19 +4,32 @@ import shaderSource from "../shaders/ShadowShader.wgsl?raw"
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
 
+/**
+ * The shadow render pipeline. We use it to draw to shadow textzre map.
+ */
 export class ShadowRenderPipeline {
 
-    private renderPipeline: GPURenderPipeline;
+    // Render pipeline
+    private _renderPipeline: GPURenderPipeline;
 
-    private projectionViewBindGroup!: GPUBindGroup;
-    private vertexBindGroup!: GPUBindGroup;
+    // Bind groups
+    private _projectionViewBindGroup!: GPUBindGroup;
+    private _vertexBindGroup!: GPUBindGroup;
 
+    /**
+     * Creates a new shadow render pipeline.
+     * @param device - The GPU device.
+     * @param camera - The shadow camera. The camera that we want to project the shadow from.
+     * @param transformsBuffer - The buffer with the transforms.
+     */
     constructor(device: GPUDevice, camera: ShadowCamera, transformsBuffer: UniformBuffer) {
 
+        // - SHADER MODULE
         const shaderModule = device.createShaderModule({
             code: shaderSource
         });
 
+        // - VERTEX BUFFER LAYOUT
         const bufferLayout: Array<GPUVertexBufferLayout> = [];
 
         bufferLayout.push({
@@ -30,6 +43,7 @@ export class ShadowRenderPipeline {
             ],
         });
 
+        // - BIND GROUP LAYOUTS
         const vertexGroupLayout = device.createBindGroupLayout({
             entries: [
                 {
@@ -58,7 +72,8 @@ export class ShadowRenderPipeline {
             ]
         });
 
-        this.renderPipeline = device.createRenderPipeline({
+        // - RENDER PIPELINE
+        this._renderPipeline = device.createRenderPipeline({
             layout: layout,
             label: "Shadow Render Pipeline",
             vertex: {
@@ -75,7 +90,8 @@ export class ShadowRenderPipeline {
         });
 
 
-        this.vertexBindGroup = device.createBindGroup({
+        // - BIND GROUPS
+        this._vertexBindGroup = device.createBindGroup({
             layout: vertexGroupLayout,
             entries: [
                 {
@@ -87,7 +103,7 @@ export class ShadowRenderPipeline {
             ]
         });
 
-        this.projectionViewBindGroup = device.createBindGroup({
+        this._projectionViewBindGroup = device.createBindGroup({
             layout: projectionViewGroupLayout,
             entries: [
                 {
@@ -101,18 +117,24 @@ export class ShadowRenderPipeline {
         })
     }
 
+    /**
+     * Draws the shadows to the shadow texture map.
+     * @param renderPassEncoder - The render pass encoder.
+     * @param buffers - The geometry buffers.
+     * @param instanceCount - The number of instances to draw. By default, 1.
+     */
     public draw(
         renderPassEncoder: GPURenderPassEncoder,
         buffers: GeometryBuffers,
         instanceCount = 1) 
         
     {
-        renderPassEncoder.setPipeline(this.renderPipeline);
+        renderPassEncoder.setPipeline(this._renderPipeline);
         renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
 
         // passes texture
-        renderPassEncoder.setBindGroup(0, this.vertexBindGroup);
-        renderPassEncoder.setBindGroup(1, this.projectionViewBindGroup);
+        renderPassEncoder.setBindGroup(0, this._vertexBindGroup);
+        renderPassEncoder.setBindGroup(1, this._projectionViewBindGroup);
 
         // draw with indexed buffer 
         if (buffers.indicesBuffer) {

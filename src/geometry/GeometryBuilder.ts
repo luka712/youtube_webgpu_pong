@@ -1,6 +1,14 @@
 import { Geometry } from "./Geometry";
 
+/**
+ * The geometry builder class.
+ */
 export class GeometryBuilder {
+
+    /**
+     * Creates the geometry for a quad.
+     * @returns The geometry for a quad.
+     */
     public createQuadGeometry(): Geometry {
         let vertices = new Float32Array([
             // t1 
@@ -32,6 +40,10 @@ export class GeometryBuilder {
         return new Geometry(vertices, indices, colors, texCoords);
     }
 
+    /**
+     * Creates the geometry for a cube.
+     * @returns The geometry for a cube.
+     */
     public createCubeGeometry(): Geometry {
 
         let vertices = new Float32Array([
